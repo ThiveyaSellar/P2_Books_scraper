@@ -1,2 +1,2 @@
 # P2_Books_scraper
-Extraire les informations tarifaires de Books to Scrape
+Extraire les informations tarifaires du site web Books to Scrape.
