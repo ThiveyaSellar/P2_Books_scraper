@@ -1,5 +1,5 @@
 import json
-
+import csv
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -67,6 +67,21 @@ def retrieve_product_info(url):
 
     json_product = json.dumps(product, indent=4)
     print(json_product)
+    print()
+
+    #En-tête du fichier CSV avec les clés du dictionnaire
+    header = []
+    for key in product.keys():
+        header.append(key)
+
+    with open('product_info.csv','w') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(header)
+        line = []
+        for k, v in product.items():
+            line.append(v)
+        writer.writerow(line)
+
 
 
 # ----------------------------------------------------------------------------------------
