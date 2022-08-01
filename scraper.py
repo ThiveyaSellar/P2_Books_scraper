@@ -42,6 +42,7 @@ def retrieve_product_info(url):
     # print(page.content)
     soup = BeautifulSoup(page.content, 'html.parser')
     product_page_url = url
+
     upc = soup.find_all("td")[0].string
     title = soup.find("h1").string
     price_including_tax = transform_price(soup.find_all("td")[2].string)
@@ -83,14 +84,69 @@ def retrieve_product_info(url):
         writer.writerow(line)
 
 
+def retrieve_one_category():
+    # URL de la page principale
+    url = "http://books.toscrape.com/index.html"
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    # Récupérer le bloc des catégories
+    category_section = soup.find("div", class_="side_categories")
+    # Lister tous les url des catégories
+    category_list = category_section.find_all("a")
+    # Liste vide pour ajouter les catégories
+    categories = []
+    # Afficher les catégories et les ajouter à la liste des catégories
+    for cat in category_list:
+        c = cat.text.strip()
+        print(c)
+        categories.append(c.lower())
+
+    # Demander de choisir une catégorie
+    # Si catégorie non présente dans la liste des catégories, demande de recommencer la saisie
+    category = input("\nChoose a category : ").lower()
+    while category not in categories:
+        category = input("\nPlease write a valid category : ").lower()
+
+    # Définir une expression régulière pour extraire l'url contenant la catégorie
+    reg_exp = "." + category + "."
+    # Chercher l'url contenant la catégorie souhaitée
+    category_url = soup.find("a", href=re.compile(reg_exp))
+    print(category_url['href'])
+
+    url = "http://books.toscrape.com/" + category_url['href']
+
+    # A mettre dans une fonction a appelé à chaque page
+    product_url = soup.find_all("h3")
+    for a in product_url :
+        b = a.find("a")['href']
+        print(b)
+
+    next = soup.find("li", class_="next")
+    next_url = next.find("a")
+    """if next_url['href']:
+        url = url + next_url['href']
+        print(url)
+"""
+
+
+
 
 # ----------------------------------------------------------------------------------------
 
 # Main
 
 # ----------------------------------------------------------------------------------------
-
-
+# Url de la page d'un produit
 url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-
 retrieve_product_info(url)
+# ----------------------------------------------------------------------------------------
+retrieve_one_category()
+
+
+
+
+
+
+
+
