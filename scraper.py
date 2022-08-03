@@ -48,8 +48,8 @@ def retrieve_product_info(url):
     price_including_tax = transform_price(soup.find_all("td")[2].string)
     price_excluding_tax = transform_price(soup.find_all("td")[3].string)
     number_available = retrieve_number_in_stock(soup.find_all("td")[5].string)
-    description = soup.find_all("p")[-1].string
-    category = soup.find_all("a")[-1].string
+    description = soup.find("div", id = "product_description").findNext("p").text
+    category = soup.find("ul", class_="breadcrumb").find_all("a")[-1].text
     review_rating = retrieve_rating(soup.find("p", class_="star-rating"))
     image_url = soup.find("img")['src']
 
@@ -66,16 +66,17 @@ def retrieve_product_info(url):
         "image_url": image_url
     }
 
-    json_product = json.dumps(product, indent=4)
-    print(json_product)
-    print()
+    """json_product = json.dumps(product, indent=4)
+    print(json_product)"""
+    return product
 
+def save_product_info(product, file_name) :
     #En-tête du fichier CSV avec les clés du dictionnaire
     header = []
     for key in product.keys():
         header.append(key)
 
-    with open('product_info.csv','w') as csv_file:
+    with open(file_name,'w') as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(header)
         line = []
@@ -186,10 +187,11 @@ def retrieve_one_category():
 
 # ----------------------------------------------------------------------------------------
 # Url de la page d'un produit
-url = "http://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
-retrieve_product_info(url)
+url = "https://books.toscrape.com/catalogue/sharp-objects_997/index.html"
+product = retrieve_product_info(url)
+save_product_info(product, "product_info.csv")
 # ----------------------------------------------------------------------------------------
-retrieve_one_category()
+#retrieve_one_category()
 
 
 
