@@ -89,7 +89,7 @@ def save_product_info(product, file_name) :
 def extract_page_product_url(soup, tab):
     product_url_list = soup.find_all("h3")
     for a in product_url_list:
-        b = a.find("a")['href']
+        b = "https://books.toscrape.com/catalogue/" + a.find("a")['href'][9:]
         tab.append(b)
 
 
@@ -121,7 +121,7 @@ def extract_all_product_url(url):
         soup = BeautifulSoup(page.content,'html.parser')
         extract_page_product_url(soup, category_product_url)
         next_page = soup.find("li", class_="next")
-
+    return category_product_url
 
 
 
@@ -160,9 +160,12 @@ def retrieve_one_category():
     print(category_url)
 
     #Récupérer la liste des url des produits de la page
-    extract_all_product_url(category_url)
+    url_list = extract_all_product_url(category_url)
+    return url_list
 
-    # En-tête du fichier CSV avec les clés du dictionnaire
+
+def save_category_product_info(urls, file_name):
+    #En-tête du fichier CSV avec les clés du dictionnaire
     header = [
         "product_page_url",
         "universal_product_code",
@@ -176,10 +179,16 @@ def retrieve_one_category():
         "image_url"
     ]
 
+    with open(file_name,'w') as csv_file:
+        writer = csv.writer(csv_file, delimiter=',')
+        writer.writerow(header)
 
-
-
-
+        for url in urls:
+            product = retrieve_product_info(url)
+            line = []
+            for k, v in product.items():
+                line.append(v)
+            writer.writerow(line)
 
 # ----------------------------------------------------------------------------------------
 
@@ -191,8 +200,9 @@ url = "https://books.toscrape.com/catalogue/sharp-objects_997/index.html"
 product = retrieve_product_info(url)
 save_product_info(product, "product_info.csv")
 # ----------------------------------------------------------------------------------------
-#retrieve_one_category()
-
+# Extraire les url et les informations des produits d'une catégorie
+urls = retrieve_one_category()
+save_category_product_info(urls, "category_product_info.csv")
 
 
 
