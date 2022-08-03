@@ -84,26 +84,67 @@ def retrieve_product_info(url):
         writer.writerow(line)
 
 
+# Extraire les url des produits sur une page
+def extract_page_product_url(soup, tab):
+    product_url_list = soup.find_all("h3")
+    for a in product_url_list:
+        b = a.find("a")['href']
+        tab.append(b)
+
+
+# Extraire les urls des produits sur toutes les pages d'une catégorie
+def extract_all_product_url(url):
+
+    # Requête avec le lien de la première page de la catégorie
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content,'html.parser')
+
+    # Tableau des urls de la catégorie
+    category_product_url = []
+    # Récupérer les liens de tous les produits de la page actuelle
+    extract_page_product_url(soup, category_product_url)
+    # Retirer index.html à l'url
+    u = url[0:-10]
+    # Chercher l'url de la page suivante
+    next_page = soup.find("li", class_="next")
+
+    # Tant qu'il existe une page suivante
+    # Récupérer les url de tous les produits
+    # Vérifier qu'il existe une page suivante
+    # Récupérer la page
+    while next_page != None :
+        next_url = next_page.find("a")
+        url = u + next_url['href']
+        #print("http://books.toscrape.com/" + url)
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content,'html.parser')
+        extract_page_product_url(soup, category_product_url)
+        next_page = soup.find("li", class_="next")
+
+
+
+
+# Extraire les urls des produits d'une catégorie
 def retrieve_one_category():
     # URL de la page principale
-    url = "http://books.toscrape.com/index.html"
-    page = requests.get(url)
+    url_main = "http://books.toscrape.com/index.html"
+    page = requests.get(url_main)
     soup = BeautifulSoup(page.content, 'html.parser')
 
     # Récupérer le bloc des catégories
     category_section = soup.find("div", class_="side_categories")
     # Lister tous les url des catégories
-    category_list = category_section.find_all("a")
+    category_url_list = category_section.find_all("a")
     # Liste vide pour ajouter les catégories
     categories = []
     # Afficher les catégories et les ajouter à la liste des catégories
-    for cat in category_list:
-        c = cat.text.strip()
+    for category in category_url_list:
+        c = category.text.strip()
         print(c)
         categories.append(c.lower())
 
     # Demander de choisir une catégorie
-    # Si catégorie non présente dans la liste des catégories, demande de recommencer la saisie
+    # Si catégorie est absente de la liste des catégories, répéter la saisie
     category = input("\nChoose a category : ").lower()
     while category not in categories:
         category = input("\nPlease write a valid category : ").lower()
@@ -112,22 +153,29 @@ def retrieve_one_category():
     reg_exp = "." + category + "."
     # Chercher l'url contenant la catégorie souhaitée
     category_url = soup.find("a", href=re.compile(reg_exp))
-    print(category_url['href'])
 
-    url = "http://books.toscrape.com/" + category_url['href']
+    # Définir l'url complet de la catégorie
+    category_url = "http://books.toscrape.com/" + category_url['href']
+    print(category_url)
 
-    # A mettre dans une fonction a appelé à chaque page
-    product_url = soup.find_all("h3")
-    for a in product_url :
-        b = a.find("a")['href']
-        print(b)
+    #Récupérer la liste des url des produits de la page
+    extract_all_product_url(category_url)
 
-    next = soup.find("li", class_="next")
-    next_url = next.find("a")
-    """if next_url['href']:
-        url = url + next_url['href']
-        print(url)
-"""
+    # En-tête du fichier CSV avec les clés du dictionnaire
+    header = [
+        "product_page_url",
+        "universal_product_code",
+        "title",
+        "price_including_tax",
+        "price_excluding_tax",
+        "number_available",
+        "product_description",
+        "category",
+        "review_rating",
+        "image_url"
+    ]
+
+
 
 
 
