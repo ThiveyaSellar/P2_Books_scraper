@@ -199,7 +199,7 @@ def choose_category() :
     while category not in categories:
         category = input("\nPlease write a valid category : ").lower()
 
-    return category, categories
+    return category
 
 def scrap_category(c):
     print(c)
@@ -209,19 +209,16 @@ def scrap_category(c):
     save_category_product_info(c_url_list, c + "_product_info.csv")
     return len(c_url_list)
 
-
-
-
 # ----------------------------------------------------------------------------------------
 
     # Récupérer les informations d'un produit à partir de l'url de sa page
 
 # ----------------------------------------------------------------------------------------
-"""
+
 url = "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
 product = retrieve_product_info(url)
 save_product_info(product)
-"""
+
 
 # ----------------------------------------------------------------------------------------
 
@@ -234,35 +231,26 @@ URL_MAIN = "http://books.toscrape.com/index.html"
 page = requests.get(URL_MAIN)
 soup = BeautifulSoup(page.content, 'html.parser')
 
+
 # Afficher la liste des catégories et choisir une catégorie
-category, categoriess = choose_category()
+category = choose_category()
 # Récupérer l'url de la catégorie
 category_url = find_category_url(category)
 # Récupérer la liste des urls de tous les produits de la catégorie souhaitée
 url_list = extract_all_product_url(category_url,category)
 
-"""
-somme = 0
-for c in categoriess :
-    print(c)
-    c = c.split(" ")
-    c = "-".join(c)
-    c_url = find_category_url(c)
-    url_l = extract_all_product_url(c_url, c)
-    print(len(url_l))
-    if c == "christian" or c == "biography" or c == "science" :
-        print(c_url)
-    somme = somme + len(url_l)
-print(somme-1000)
-"""
-
-
 # Récupérer les informations de tous les produits et les enregistrer dans un fichier csv
 save_category_product_info(url_list, category + "_product_info.csv")
 
+# ----------------------------------------------------------------------------------------
+
+    # Extraire toutes les catégories
+
+# ----------------------------------------------------------------------------------------
+
 # Extraire toutes les catégories
 category_section = soup.find("div", class_="side_categories")
-category_url_list = category_section.find_all("a")
+category_url_list = category_section.find_all("a")[1:]
 categories = []
 # Afficher les catégories et les ajouter à la liste des catégories
 for category in category_url_list:
@@ -278,10 +266,21 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     executor.shutdown()
     print(sum([ f.result() for f in a ]))
 
+# ----------------------------------------------------------------------------------------
 
+    # Télécharger les images des pages produits visitées
 
+# ----------------------------------------------------------------------------------------
+"""
+url = "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html"
+page = requests.get(url)
+soup = BeautifulSoup(page.content,'html.parser')
 
-
+import urllib.request
+#image_url = soup.findAll("img")[0]['src']
+image_url = soup.findAll("img")[0]['src']
+filename = ""
+urllib.request.urlretrieve(image_url,"/home/trlaa/Documents/Projets_OC/P2_Books_scraper")"""
 
 
 
