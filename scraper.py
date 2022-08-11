@@ -55,10 +55,12 @@ def retrieve_product_info(url):
         description = soup.find("div", id = "product_description").findNext("p").text
     except AttributeError as error :
         print(error)
-        print("\nPas description : " + url)
+        print("Pas description pour : \n" + url)
     category = soup.find("ul", class_="breadcrumb").find_all("a")[-1].text
     review_rating = retrieve_rating(soup.find("p", class_="star-rating"))
+
     image_url = soup.find("div", id="product_gallery").find("img")['src']
+    image_url = "https://books.toscrape.com/" + "/".join(image_url.split("/")[2:])
 
     product = {
         "product_page_url": url,
@@ -154,7 +156,7 @@ def find_category_url(category):
     return category_url
 
 
-def save_category_product_info(urls, file_name):
+def save_category_product_info(urls, file_name, directory):
     #En-tête du fichier CSV
     header = [
         "product_page_url",
@@ -169,7 +171,7 @@ def save_category_product_info(urls, file_name):
         "image_url"
     ]
 
-    with open(file_name,'w') as csv_file:
+    with open(directory + "/" + file_name,'w') as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(header)
 
@@ -179,7 +181,6 @@ def save_category_product_info(urls, file_name):
             for k, v in product.items():
                 line.append(v)
             writer.writerow(line)
-
 
 def choose_category() :
     # Récupérer le bloc des catégories
@@ -202,12 +203,12 @@ def choose_category() :
 
     return category
 
-def scrap_category(c):
-    print(c)
-    c_url = find_category_url(c)
+def scrap_category(category, directory):
+    print(category)
+    c_url = find_category_url(category)
     print(c_url)
-    c_url_list = extract_all_product_url(c_url,c)
-    save_category_product_info(c_url_list, c + "_product_info.csv")
+    c_url_list = extract_all_product_url(c_url,category)
+    save_category_product_info(c_url_list, category + "_product_info.csv", directory)
     return len(c_url_list)
 
 def extract_images_urls(soup, tab_img, tab_title):
@@ -244,7 +245,7 @@ save_product_info(product)
 
 # ----------------------------------------------------------------------------------------
 
-"""# Requête avec url de la page principale
+# Requête avec url de la page principale
 URL_MAIN = "http://books.toscrape.com/index.html"
 page = requests.get(URL_MAIN)
 soup = BeautifulSoup(page.content, 'html.parser')
@@ -258,7 +259,7 @@ category_url = find_category_url(category)
 url_list = extract_all_product_url(category_url,category)
 
 # Récupérer les informations de tous les produits et les enregistrer dans un fichier csv
-save_category_product_info(url_list, category + "_product_info.csv")"""
+save_category_product_info(url_list, category + "_product_info.csv", "./")
 
 # ----------------------------------------------------------------------------------------
 
@@ -266,7 +267,7 @@ save_category_product_info(url_list, category + "_product_info.csv")"""
 
 # ----------------------------------------------------------------------------------------
 
-"""# Extraire toutes les catégories
+# Extraire toutes les catégories
 category_section = soup.find("div", class_="side_categories")
 category_url_list = category_section.find_all("a")[1:]
 categories = []
@@ -277,40 +278,26 @@ for category in category_url_list:
         c = c.replace(' ','-')
     categories.append(c.lower())
 
+category_dir = "Categories"
+parent_directory = "./"
+path = os.path.join(parent_directory, category_dir)
+try:
+    os.mkdir(path)
+except FileExistsError as error:
+    print(error)
+
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     a = []
     for c in categories :
-        a.append(executor.submit(scrap_category,c))
+        a.append(executor.submit(scrap_category,c,category_dir))
     executor.shutdown()
-    print(sum([ f.result() for f in a ]))"""
+    print(sum([ f.result() for f in a ]))
 
 # ----------------------------------------------------------------------------------------
 
     # Télécharger les images des pages produits visitées
 
 # ----------------------------------------------------------------------------------------
-
-main_url = "https://books.toscrape.com/"
-"""image_url = soup.findAll("img")[0]['src']
-
-image_url = image_url.split("/")
-image_url = image_url[2:]
-image_url = "/".join(image_url)
-link = main_url + image_url
-
-directory = "Images"
-parent_directory = "/home/trlaa/Documents/Projets_OC/P2_Books_scraper/"
-path = os.path.join(parent_directory, directory)
-try :
-    os.mkdir(path)
-except FileExistsError as error :
-    print(error)
-
-f = open('Images/image1.jpg', 'wb')
-response = requests.get(link)
-f.write(response.content)
-f.close()
-"""
 
 page = requests.get("https://books.toscrape.com/catalogue/category/books_1/index.html")
 soup = BeautifulSoup(page.content, 'html.parser')
