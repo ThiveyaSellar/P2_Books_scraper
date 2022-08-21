@@ -52,7 +52,8 @@ def retrieve_product_info(url):
         description = soup.find("div", id = "product_description").findNext("p").text
     except AttributeError as error :
         print(error)
-        print("Pas description pour : \n" + url)
+        print("Pas de description pour : " + title)
+        print(url)
     category = soup.find("ul", class_="breadcrumb").find_all("a")[-1].text
     review_rating = extract_rating(soup.find("p", class_="star-rating"))
 
@@ -197,9 +198,7 @@ def choose_category():
 
 
 def scrap_category(category, directory):
-    print("\n" + category.upper())
     c_url = find_category_url(category)
-    print(c_url)
     c_url_list = extract_all_product_url(c_url, category)
     save_category_product_info(c_url_list, category + "_product_info.csv", directory)
     return len(c_url_list)
@@ -251,7 +250,7 @@ print("\n1) Extraire les informations d'un produit à partir de l'url de sa page
 print("Souhaitez-vous saisir l'url d'un produit ? 'O' pour oui ou 'N' non")
 rep = input().lower()
 while rep != 'o' and rep != 'n':
-    print("Saisir 'O' pour oui ou 'N' non")
+    print("Saisir 'o' pour oui ou 'n' non")
     rep = input().lower()
 if rep == 'o':
     print("Saisir l'url d'un produit")
@@ -290,7 +289,7 @@ save_category_product_info(url_list, category + "_product_info.csv", "./")
     # Extraire toutes les catégories
 
 # ----------------------------------------------------------------------------------------
-print("\n3) Extraire les informations des produits de toutes les catégories")
+print("\n3) Extraire les informations des produits de toutes les catégories\n")
 category_section = soup.find("div", class_="side_categories")
 category_url_list = category_section.find_all("a")[1:]
 categories = []
@@ -314,7 +313,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     for c in categories:
         a.append(executor.submit(scrap_category, c, category_dir))
     executor.shutdown()
-    print("Nombre de produits scrappés : " + sum([f.result() for f in a]))
+    print("Nombre de produits scrappés : " + str(sum([f.result() for f in a])))
 
 # ----------------------------------------------------------------------------------------
 
